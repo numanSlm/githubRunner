@@ -1,25 +1,75 @@
-name: Scala/Spark JAR Build and Deploy to S3
+name: Setup Scala/Spark Dependencies
 
 on:
+  workflow_dispatch: # Allows you to manually trigger this workflow from the GitHub UI
   push:
     branches:
-      - main # Trigger on pushes to the main branch
+      - main # Also triggers on pushes to the main branch (you can remove this if you only want manual triggers)
 
 jobs:
-  build-and-deploy:
-    # Use default GitHub-hosted runner for GitHub.com
-    # or specific labels for self-hosted runner for GHES
-    runs-on: ubuntu-latest # For GitHub.com
-    # runs-on: [self-hosted, linux, x64, my-scala-runner] # For GHES (replace with your runner labels)
+  setup-env:
+    runs-on: ubuntu-latest # Uses the latest Ubuntu runner
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout Repository (Optional, but good practice)
         uses: actions/checkout@v4
+        # Even though you have no code, checking out the repo sets up the workspace
 
       - name: Set up Java JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          # No direct Scala/Spark setup here. SBT/Maven will handle it.
-          cache: sbt # Cache SBT dependencies for faster builds
+          # No caching options needed as we're not building a project yet
+
+      - name: Install Scala 2.13.12
+        run: |
+          SCALA_VERSION="2.13.12"
+          SCALA_TGZ="scala-${SCALA_VERSION}.tgz"
+          SCALA_URL="https://downloads.lightbend.com/scala/${SCALA_VERSION}/${SCALA_TGZ}"
+
+          echo "Downloading Scala ${SCALA_VERSION}..."
+          curl -sL $SCALA_URL -o $SCALA_TGZ
+          tar xvf $SCALA_TGZ -C /opt/ # Extract to /opt/
+          echo "/opt/scala-${SCALA_VERSION}/bin" >> $GITHUB_PATH # Add Scala bin directory to PATH
+
+          echo "--- Scala Installation Details ---"
+          scala -version
+          scalac -version
+          echo "----------------------------------"
+
+      - name: Verify Spark 3.5.0 Environment Preparation
+        run: |
+          # Spark is typically used by adding its JARs to the classpath for 'spark-submit'
+          # or by being available on the cluster nodes.
+          # Here, we'll download a small part of Spark to demonstrate it's reachable.
+          # For a real project, SBT/Maven would manage Spark dependencies for compilation.
+
+          SPARK_VERSION="3.5.0"
+          SPARK_PACKAGE="spark-${SPARK_VERSION}-bin-hadoop3" # Common Spark distribution name
+          SPARK_URL="https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz"
+
+          echo "Attempting to download a portion of Spark ${SPARK_VERSION}..."
+          curl -sL $SPARK_URL -o ${SPARK_PACKAGE}.tgz
+          tar xvf ${SPARK_PACKAGE}.tgz -C /opt/
+          
+          # Add Spark's bin to PATH for 'spark-shell' or 'spark-submit' to be recognized
+          echo "/opt/${SPARK_PACKAGE}/bin" >> $GITHUB_PATH
+
+          echo "--- Spark Installation Details ---"
+          # Try to run spark-shell to verify (it might hang, but it confirms Spark command exists)
+          echo "Verifying Spark command availability. This might take a moment..."
+          # Using 'which' is safer here to just confirm command exists
+          which spark-shell || { echo "spark-shell command not found!"; exit 1; }
+          echo "Spark commands are available in PATH."
+          echo "----------------------------------"
+
+      - name: Final Environment Check
+        run: |
+          echo "--- Final Environment Check ---"
+          echo "JAVA_HOME: $JAVA_HOME"
+          echo "PATH: $PATH"
+          java -version
+          scala -version
+          spark-shell --version # This will print Spark version and exit
+          echo "-------------------------------"
