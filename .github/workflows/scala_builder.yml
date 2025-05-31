@@ -44,9 +44,9 @@ jobs:
           scalac -version
           echo "----------------------------------"
 
-      - name: Verify Spark 3.5.0 Environment Preparation
+      - name: Verify Spark 3.5.5 Environment Preparation
         run: |
-          SPARK_VERSION="3.5.0"
+          SPARK_VERSION="3.5.5"
           SPARK_PACKAGE="spark-${SPARK_VERSION}-bin-hadoop3" # Common Spark distribution name
           # Using Apache archive for stability, check for latest if needed:
           SPARK_URL="https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz"
