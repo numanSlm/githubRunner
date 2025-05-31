@@ -27,12 +27,18 @@ jobs:
           SCALA_VERSION="2.13.12"
           SCALA_TGZ="scala-${SCALA_VERSION}.tgz"
           SCALA_URL="https://downloads.lightbend.com/scala/${SCALA_VERSION}/${SCALA_TGZ}"
-
+          SCALA_INSTALL_DIR="/opt/scala-${SCALA_VERSION}" # Define install directory
+          
           echo "Downloading Scala ${SCALA_VERSION}..."
           curl -sL $SCALA_URL -o $SCALA_TGZ
           tar xvf $SCALA_TGZ -C /opt/ # Extract to /opt/
-          echo "/opt/scala-${SCALA_VERSION}/bin" >> $GITHUB_PATH # Add Scala bin directory to PATH
-
+          
+          # Add Scala's bin directory to the PATH for the CURRENT shell session
+          # AND for subsequent steps.
+          echo "Adding ${SCALA_INSTALL_DIR}/bin to PATH for current and subsequent steps."
+          echo "${SCALA_INSTALL_DIR}/bin" >> $GITHUB_PATH # For subsequent steps
+          export PATH="${SCALA_INSTALL_DIR}/bin:$PATH"  # For the current step
+          
           echo "--- Scala Installation Details ---"
           scala -version
           scalac -version
