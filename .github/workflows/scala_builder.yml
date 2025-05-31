@@ -28,17 +28,17 @@ jobs:
           SCALA_TGZ="scala-${SCALA_VERSION}.tgz"
           SCALA_URL="https://downloads.lightbend.com/scala/${SCALA_VERSION}/${SCALA_TGZ}"
           SCALA_INSTALL_DIR="/opt/scala-${SCALA_VERSION}" # Define install directory
-          
+
           echo "Downloading Scala ${SCALA_VERSION}..."
           curl -sL $SCALA_URL -o $SCALA_TGZ
           tar xvf $SCALA_TGZ -C /opt/ # Extract to /opt/
-          
+
           # Add Scala's bin directory to the PATH for the CURRENT shell session
           # AND for subsequent steps.
           echo "Adding ${SCALA_INSTALL_DIR}/bin to PATH for current and subsequent steps."
           echo "${SCALA_INSTALL_DIR}/bin" >> $GITHUB_PATH # For subsequent steps
           export PATH="${SCALA_INSTALL_DIR}/bin:$PATH"  # For the current step
-          
+
           echo "--- Scala Installation Details ---"
           scala -version
           scalac -version
@@ -46,26 +46,24 @@ jobs:
 
       - name: Verify Spark 3.5.0 Environment Preparation
         run: |
-          # Spark is typically used by adding its JARs to the classpath for 'spark-submit'
-          # or by being available on the cluster nodes.
-          # Here, we'll download a small part of Spark to demonstrate it's reachable.
-          # For a real project, SBT/Maven would manage Spark dependencies for compilation.
-
           SPARK_VERSION="3.5.0"
           SPARK_PACKAGE="spark-${SPARK_VERSION}-bin-hadoop3" # Common Spark distribution name
+          # Using Apache archive for stability, check for latest if needed:
           SPARK_URL="https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz"
+          SPARK_INSTALL_DIR="/opt/${SPARK_PACKAGE}" # Define install directory
 
           echo "Attempting to download a portion of Spark ${SPARK_VERSION}..."
           curl -sL $SPARK_URL -o ${SPARK_PACKAGE}.tgz
           tar xvf ${SPARK_PACKAGE}.tgz -C /opt/
-          
-          # Add Spark's bin to PATH for 'spark-shell' or 'spark-submit' to be recognized
-          echo "/opt/${SPARK_PACKAGE}/bin" >> $GITHUB_PATH
+
+          # Add Spark's bin to PATH for the CURRENT shell session
+          # AND for subsequent steps.
+          echo "Adding ${SPARK_INSTALL_DIR}/bin to PATH for current and subsequent steps."
+          echo "${SPARK_INSTALL_DIR}/bin" >> $GITHUB_PATH # For subsequent steps
+          export PATH="${SPARK_INSTALL_DIR}/bin:$PATH" # For the current step
 
           echo "--- Spark Installation Details ---"
-          # Try to run spark-shell to verify (it might hang, but it confirms Spark command exists)
           echo "Verifying Spark command availability. This might take a moment..."
-          # Using 'which' is safer here to just confirm command exists
           which spark-shell || { echo "spark-shell command not found!"; exit 1; }
           echo "Spark commands are available in PATH."
           echo "----------------------------------"
