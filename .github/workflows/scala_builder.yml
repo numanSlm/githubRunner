@@ -1,0 +1,25 @@
+name: Scala/Spark JAR Build and Deploy to S3
+
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+
+jobs:
+  build-and-deploy:
+    # Use default GitHub-hosted runner for GitHub.com
+    # or specific labels for self-hosted runner for GHES
+    runs-on: ubuntu-latest # For GitHub.com
+    # runs-on: [self-hosted, linux, x64, my-scala-runner] # For GHES (replace with your runner labels)
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          # No direct Scala/Spark setup here. SBT/Maven will handle it.
+          cache: sbt # Cache SBT dependencies for faster builds
